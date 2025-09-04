@@ -24,6 +24,7 @@ const Currencies = (props: CurrenciesPropsType) => {
               key={`${currency.ID} ${currency.CharCode}`}
               onClick={() => changeCurrency(currency.CharCode)}
               className={style}
+              data-testid = "currency-option"
             >
               {currency.CharCode}
             </div>

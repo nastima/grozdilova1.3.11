@@ -29,6 +29,7 @@ const ConverterView = (props: ConverterViewType) => {
           onChange={onChangeFieldHandler}
           maxLength={10}
           disabled={disabled}
+          data-testid = {disabled ? "right-input" : "left-input"}
         />
       </div>
     </>

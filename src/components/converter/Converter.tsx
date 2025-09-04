@@ -4,7 +4,7 @@ import { RootState } from "../app/store";
 import ConverterView from "../сonverterView/ConverterView";
 import "./Converter.scss";
 
-type ConverterPropsType = {
+export type ConverterPropsType = {
   rateFirstCurrency: number;
   rateSecondCurrency: number;
   changeCurrency: (currencyOfFirstField: string, currencyOfSecondField: string, value: string) => void;
@@ -32,8 +32,8 @@ const Converter = (props: ConverterPropsType) => {
     changeCurrency(currencySecondField, currencyFirstField, countFirstField);
   };
 
-  const rateForFirstField = rateFirstCurrency.toFixed(2);
-  const rateForSecondField = rateSecondCurrency.toFixed(2);
+  const rateForFirstField = rateFirstCurrency?.toFixed(2) || '0.00';
+  const rateForSecondField = rateSecondCurrency?.toFixed(2) || '0.00';
 
   return (
     <>

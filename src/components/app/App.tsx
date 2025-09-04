@@ -4,7 +4,7 @@ import { useGetCurrenciesQuery } from "../../services/getCurrencies.api";
 import { changeFieldValue, setCurrencies, setCurrentCurrency, setMainCurrency } from "../../services/currenciesSlice";
 import { useSelector } from "react-redux";
 import { RootState } from "./store";
-import Converter from "../сonverter/Converter";
+import Converter from "../converter/Converter";
 
 function App() {
   const dispatch = useDispatch();
@@ -27,7 +27,7 @@ function App() {
     }
   }, [response, dispatch]);
 
-  const { currencies, currencyFirstField, currencySecondField, countFirstField } = useSelector(
+  const { currencies, currencyFirstField, currencySecondField} = useSelector(
     (state: RootState) => state.converter
   );
   // debugger;
@@ -116,8 +116,6 @@ function App() {
       );
     }
   };
-
-  changeFirstFieldValue(countFirstField);
 
   return (
     <Converter
