@@ -37,15 +37,38 @@ describe('Converter Component', () => {
   it('renders initial state correctly', async  () => {
     renderWithRedux(<Converter {...props}/>);
 
+    screen.debug();
+
     await waitFor(() => {
       expect(screen.getByTestId("right-input")).not.toHaveValue(0);
       expect(screen.getByTestId("left-input")).toHaveValue(100);
       expect(screen.getByTestId("right-input")).toBeDisabled();
     });
-
   });
 
-  // Тест 2: конвертация при изменении значения в левом инпуте
+  //Тест 2: Обновить правильное значение при изменении валюты
+  it('Refresh the right value when changing currency', async () => {
+    const mockChange = vi.fn();
+    props.changeCurrency = mockChange;
+
+    renderWithRedux(<Converter {...props}/>);
+    const rightInput = screen.getByTestId('right-input');
+
+    await waitFor(() => {
+      expect(rightInput).not.toHaveValue(0);
+    });
+
+    // const initialValue = rightInput.value;
+
+    // Находим и кликаем на кнопку выбора валюты
+    const currencyOptions = screen.getAllByTestId('currency-option');
+    fireEvent.click(currencyOptions[1]);
+
+    // Проверяем, что функция changeCurrency была вызвана
+    expect(mockChange).toHaveBeenCalled();
+  });
+
+  // Тест 3: конвертация при изменении значения в левом инпуте
   it('conversion when changing the value in left inputting', () => {
     renderWithRedux(<Converter {...props} />);
 
@@ -55,26 +78,19 @@ describe('Converter Component', () => {
     fireEvent.change(leftInput, {target: {value: "200"}});
 
     expect(rightInput).not.toHaveValue(0);
-  })
+  });
 
-  //Тест 3: одинаковые валюты → курс 1:1
-  //
-  // it('The same currency rate 1:1', async () => {
-  //   const user = userEvent.setup();
-  //
-  //   renderWithRedux(<Converter {...props} />);
-  //
-  //   const leftInput = screen.getByTestId('left-input');
-  //   const rightInput = screen.getByTestId('right-input');
-  //   const currencyOptions = screen.getAllByTestId("currency-option");
-  //
-  //   await user.click(currencyOptions.find(el => el.textContent === "USD")!);
-  //   await user.click(currencyOptions.find(el => el.textContent === "USD")!);
-  //
-  //   await user.clear(leftInput);
-  //   await user.type(leftInput, "50");
-  //
-  //   expect(leftInput).toHaveValue(50);
-  //   expect(rightInput).toHaveValue(0);
-  // });
+  //Тест 4: отображение курсов валют
+  test("currency display", async () => {
+    renderWithRedux(<Converter {...props} />);
+
+    // Ждем появления информации о курсах
+    await waitFor(() => {
+      const rateElements = document.querySelectorAll('.box__rate');
+      expect(rateElements.length).toBe(2);
+      expect(rateElements[0]).toHaveTextContent('1');
+      expect(rateElements[1]).toHaveTextContent('1');
+    });
+  });
+
 })
