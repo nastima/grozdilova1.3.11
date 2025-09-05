@@ -44,9 +44,9 @@ describe('Converter Component', () => {
       expect(screen.getByTestId("left-input")).toHaveValue(100);
       expect(screen.getByTestId("right-input")).toBeDisabled();
     });
-  });
 
-  //Тест 2: Обновить правильное значение при изменении валюты
+  });
+  // Тест 2: Обновить правильное значение при изменении валюты
   it('Refresh the right value when changing currency', async () => {
     const mockChange = vi.fn();
     props.changeCurrency = mockChange;
@@ -60,12 +60,12 @@ describe('Converter Component', () => {
 
     // const initialValue = rightInput.value;
 
-    // Находим и кликаем на кнопку выбора валюты
     const currencyOptions = screen.getAllByTestId('currency-option');
     fireEvent.click(currencyOptions[1]);
 
-    // Проверяем, что функция changeCurrency была вызвана
     expect(mockChange).toHaveBeenCalled();
+
+
   });
 
   // Тест 3: конвертация при изменении значения в левом инпуте
@@ -79,12 +79,10 @@ describe('Converter Component', () => {
 
     expect(rightInput).not.toHaveValue(0);
   });
-
-  //Тест 4: отображение курсов валют
+  // Тест 4: отображение курсов валют
   test("currency display", async () => {
     renderWithRedux(<Converter {...props} />);
 
-    // Ждем появления информации о курсах
     await waitFor(() => {
       const rateElements = document.querySelectorAll('.box__rate');
       expect(rateElements.length).toBe(2);
@@ -92,5 +90,4 @@ describe('Converter Component', () => {
       expect(rateElements[1]).toHaveTextContent('1');
     });
   });
-
 })
