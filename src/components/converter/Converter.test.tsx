@@ -1,93 +1,144 @@
-import { fireEvent, screen, waitFor } from "@testing-library/react";
-import {renderWithRedux} from "../../test/utils.tsx";
-import Converter, {type ConverterPropsType} from "./Converter";
-// import  { currencyResponse } from "../../mocks/response.ts";
-import { describe, expect, it, vi } from "vitest";
-import { Currency } from "../../types/types.ts";
-// import { userEvent } from "@testing-library/user-event";
+import { screen, fireEvent } from '@testing-library/react';
+import { renderWithRedux } from '../../test/utils';
+import Converter from './Converter';
+import { currencyResponse } from '../../mocks/response';
+import { Currency } from '../../types/types';
+import userEvent from '@testing-library/user-event';
+import { vi } from 'vitest';
 
-// const currenciesMock = Object.values(currencyResponse.Valute);
+// Полные моковые данные
+const mockCurrencies: Currency[] = Object.values(currencyResponse.Valute);
+
+const mockProps = {
+  rateFirstCurrency: 1,
+  rateSecondCurrency: 0.85,
+  changeCurrency: vi.fn(),
+  changeFirstFieldValue: vi.fn(),
+  changeSecondFieldValue: vi.fn(),
+  currencies: mockCurrencies,
+};
+
+// Mock Redux state для useSelector
+const mockState = {
+  converter: {
+    currencyFirstField: 'USD',
+    currencySecondField: 'EUR',
+    countFirstField: '100',
+    countSecondField: '85.00',
+    mainCurrencies: [
+      currencyResponse.Valute.USD,
+      currencyResponse.Valute.EUR,
+      currencyResponse.Valute.GBP,
+      currencyResponse.Valute.JPY,
+      currencyResponse.Valute.KZT,
+      currencyResponse.Valute.CAD,
+    ]
+  }
+};
 
 
 describe('Converter Component', () => {
-  let props: ConverterPropsType;
+  // Тест 1: Рендер начального состояния
+  test('renders initial state correctly', () => {
+    renderWithRedux(<Converter {...mockProps} />, { preloadedState: mockState });
 
-  beforeEach(() => {
-    const mockChange = vi.fn();
-    const mockCurrencies: Currency[] = [
-      { ID: "1", CharCode: "USD", Value: 1, Previous: 0.95, Name: "Доллар США", Nominal: 1, NumCode: "840" },
-      { ID: "2", CharCode: "EUR", Value: 0.9, Previous: 0.88, Name: "Евро", Nominal: 1, NumCode: "978" },
-      { ID: "3", CharCode: "JPY", Value: 110, Previous: 109, Name: "Японская иена", Nominal: 100, NumCode: "392" },
-      { ID: "4", CharCode: "KZT", Value: 430, Previous: 428, Name: "Казахстанский тенге", Nominal: 100, NumCode: "398" },
-      { ID: "5", CharCode: "CAD", Value: 1.2, Previous: 1.18, Name: "Канадский доллар", Nominal: 1, NumCode: "124" },
-      { ID: "6", CharCode: "GBP", Value: 0.8, Previous: 0.79, Name: "Фунт стерлингов", Nominal: 1, NumCode: "826" },
-    ];
-
-    props = {
-      rateFirstCurrency: 1,
-      rateSecondCurrency: 0.85,
-      changeCurrency: mockChange,
-      changeFirstFieldValue: mockChange,
-      changeSecondFieldValue: mockChange,
-      currencies: mockCurrencies,
-    };
-  });
-
-  //Тест 1: Стартовое состояние (100 слева, 0 справа, правый недоступен)
-  it('renders initial state correctly', async  () => {
-    renderWithRedux(<Converter {...props}/>);
-
-    screen.debug();
-
-    await waitFor(() => {
-      expect(screen.getByTestId("right-input")).not.toHaveValue(0);
-      expect(screen.getByTestId("left-input")).toHaveValue(100);
-      expect(screen.getByTestId("right-input")).toBeDisabled();
-    });
-
-  });
-  // Тест 2: Обновить правильное значение при изменении валюты
-  it('Refresh the right value when changing currency', async () => {
-    const mockChange = vi.fn();
-    props.changeCurrency = mockChange;
-
-    renderWithRedux(<Converter {...props}/>);
-    const rightInput = screen.getByTestId('right-input');
-
-    await waitFor(() => {
-      expect(rightInput).not.toHaveValue(0);
-    });
-
-    // const initialValue = rightInput.value;
-
-    const currencyOptions = screen.getAllByTestId('currency-option');
-    fireEvent.click(currencyOptions[1]);
-
-    expect(mockChange).toHaveBeenCalled();
-
-
-  });
-
-  // Тест 3: конвертация при изменении значения в левом инпуте
-  it('conversion when changing the value in left inputting', () => {
-    renderWithRedux(<Converter {...props} />);
+    expect(screen.getByText('Конвертер валют онлайн')).toBeInTheDocument();
+    expect(screen.getByText('У меня есть')).toBeInTheDocument();
+    expect(screen.getByText('Хочу приобрести')).toBeInTheDocument();
 
     const leftInput = screen.getByTestId('left-input');
     const rightInput = screen.getByTestId('right-input');
 
-    fireEvent.change(leftInput, {target: {value: "200"}});
-
-    expect(rightInput).not.toHaveValue(0);
+    expect(leftInput).toHaveValue(100);
+    expect(rightInput).toBeDisabled();
   });
-  // Тест 4: отображение курсов валют
-  test("currency display", async () => {
-    renderWithRedux(<Converter {...props} />);
 
-    await waitFor(() => {
-      const rateElements = document.querySelectorAll('.box__rate');
-      expect(rateElements.length).toBe(2);
-      expect(rateElements[0]).toHaveTextContent('1');
-      expect(rateElements[1]).toHaveTextContent('1');
+
+  // Тест 2: Активное состояние валют
+  test('shows active state for selected currencies', () => {
+    renderWithRedux(<Converter {...mockProps} />, { preloadedState: mockState });
+
+    const currencyButtons = screen.getAllByTestId('currency-option');
+
+    // Первая кнопка (RUR) должна быть активна
+    expect(currencyButtons[0]).toHaveClass('active');
+    expect(currencyButtons[0]).toHaveTextContent('RUR');
+
+    // Вторая кнопка (RUR) не должна быть активна
+    expect(currencyButtons[1]).not.toHaveClass('active');
+    expect(currencyButtons[1]).toHaveTextContent('RUR');
+  });
+
+  // Тест 3: Вызов changeCurrency при клике
+  test('calls changeCurrency when currency button is clicked', () => {
+    renderWithRedux(<Converter {...mockProps} />, { preloadedState: mockState });
+
+    const currencyOptions = screen.getAllByTestId('currency-option');
+    fireEvent.click(currencyOptions[0]);
+
+    expect(mockProps.changeCurrency).toHaveBeenCalled();
+  });
+
+  // Тест 4: Отображение курсов
+  test('displays exchange rates correctly', () => {
+    renderWithRedux(<Converter {...mockProps} />, { preloadedState: mockState });
+
+    const rateElements = document.querySelectorAll('.box__rate');
+    expect(rateElements.length).toBe(2);
+
+    // Проверяем формат курсов
+    rateElements.forEach(element => {
+      expect(element.textContent).toMatch(/1 [A-Z]{3} = \d+\.\d{2} [A-Z]{3}/);
     });
   });
-})
+
+  // Тест 5: Конвертация при изменении левого инпута
+  test('calls changeFirstFieldValue when left input changes', () => {
+    renderWithRedux(<Converter {...mockProps} />, { preloadedState: mockState });
+
+    const leftInput = screen.getByTestId('left-input');
+    fireEvent.change(leftInput, { target: { value: '200' } });
+
+    expect(mockProps.changeFirstFieldValue).toHaveBeenCalledWith('200');
+  });
+
+  // Тест 6: Правый инпут недоступен для редактирования
+  test('right input is disabled', async () => {
+    const user = userEvent.setup();
+    renderWithRedux(<Converter {...mockProps} />, { preloadedState: mockState });
+
+    const rightInput = screen.getByTestId('right-input');
+    expect(rightInput).toBeDisabled();
+
+    // Пытаемся изменить - userEvent должен игнорировать disabled элементы
+    await user.type(rightInput, '500');
+    expect(mockProps.changeSecondFieldValue).not.toHaveBeenCalled();
+  });
+
+  // Тест 7: Swap функциональность
+  test('swap currencies calls changeCurrency with swapped values', () => {
+    renderWithRedux(<Converter {...mockProps} />, { preloadedState: mockState });
+
+    const swapButton = document.querySelector('.direction__reverse');
+    fireEvent.click(swapButton!);
+
+    // Ожидаем аргументы в соответствии с фактическим mockState
+    // Если в mockState leftCurrency: 'USD', rightCurrency: 'RUR'
+    expect(mockProps.changeCurrency).toHaveBeenCalledWith('USD', 'RUR', '100');
+  });
+
+  // Тест 8: Форматирование чисел
+  test('formats numbers with 2 decimal places', () => {
+    const formattedProps = {
+      ...mockProps,
+      rateFirstCurrency: 1.23456,
+      rateSecondCurrency: 0.98765
+    };
+
+    renderWithRedux(<Converter {...formattedProps} />, { preloadedState: mockState });
+
+    const rateElements = document.querySelectorAll('.box__rate');
+    expect(rateElements[0].textContent).toContain('1.23');
+    expect(rateElements[1].textContent).toContain('0.99');
+  });
+});

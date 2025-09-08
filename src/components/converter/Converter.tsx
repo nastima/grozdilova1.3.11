@@ -54,7 +54,11 @@ const Converter = (props: ConverterPropsType) => {
           </div>
         </div>
         <div className="direction">
-          <div className="direction__reverse" onClick={() => swapCurrencies()}></div>
+          <div
+            className="direction__reverse"
+            onClick={() => swapCurrencies()}
+            data-testid = "swap-button"
+          ></div>
         </div>
         <div className="converter">
           <div className="converter__title">Хочу приобрести</div>
